@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+	const [imgData, setImgData] = useState([]);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+	useEffect(() => {
+		fetchImages()
+			.then(resolve => setImgData(resolve))
+			.catch(error => console.log(error));
+	}, []);
+
+	return (
+		<div className="app">
+			{imgData.map(data => {
+				return (
+					<section key={data.id}>
+						<span>{data.name}</span>
+					</section>
+				);
+			})}
+		</div>
+	);
 }
 
-export default App
+async function fetchImages() {
+	const response = await fetch('https://pokeapi.co/api/v2/pokemon');
+	const json = await response.json();
+
+	const imgData = [];
+	for (const entry of json.results) {
+		const entryResponse = await fetch(entry.url);
+		const data = await entryResponse.json();
+		imgData.push({
+			id: data.id,
+			name: data.name,
+			imgSrc: data.sprites.front_default,
+		});
+	}
+	return imgData;
+}
+
+export default App;
